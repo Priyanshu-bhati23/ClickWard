@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Experiment {
+  id               String    @id @default(uuid())
+  userId           String // Maps to Supabase auth.users.id
+  name             String
+  description      String?
+  goal             String
+  status           String    @default("Draft") // Draft, Running, Collecting Data, Winner Candidate, Paused, Completed
+  targetSelector   String? // CSS selector for the SDK to target on the customer's page
+  winningVariantId String? // Stores promoted winner variant ID
+  variants         Variant[]
+  events           Event[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Variant {
+  id            String     @id @default(uuid())
+  experimentId  String
+  experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  name          String
+  headline      String
+  description   String
+  ctaText       String
+  targetHref    String? // Optional URL change for href modification
+  targetVisible Boolean    @default(true) // Visibility toggle
+  allocation    Int        @default(50) // traffic percentage (0 - 100)
+  visits        Int        @default(0) // legacy compat
+  conversions   Int        @default(0) // legacy compat
+  events        Event[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Event {
+  id           String     @id @default(uuid())
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variantId    String
+  variant      Variant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  visitorId    String
+  eventType    String // "impression" | "conversion"
+  isSimulated  Boolean    @default(false) // Distinguishes simulated data from real production traffic
+  createdAt    DateTime   @default(now())
+
+  @@index([experimentId, variantId, eventType, isSimulated])
+  @@index([visitorId, experimentId])
+}
