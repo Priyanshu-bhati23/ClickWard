@@ -80,12 +80,12 @@ Instructions:
           },
           { role: 'user', content: prompt },
         ],
-        model: 'llama-3.3-70b-versatile',
+        model: 'qwen/qwen3.6-27b',
         temperature: 0.7,
         response_format: { type: 'json_object' },
       })
     } catch (e: any) {
-      // Fallback model if 70b is rate limited or unavailable
+      // Fallback model
       completion = await groq.chat.completions.create({
         messages: [
           {
@@ -94,7 +94,7 @@ Instructions:
           },
           { role: 'user', content: prompt },
         ],
-        model: 'llama3-8b-8192',
+        model: 'llama-3.3-70b-versatile',
         temperature: 0.7,
         response_format: { type: 'json_object' },
       })
